@@ -1,0 +1,16 @@
+obj/*
+!obj/.gitkeep
+bin/*
+!bin/.gitkeep
+*.o
+*.out
+
+*.csv
+
+__pycache__/
+*.pyc
+
+.vscode/
+*.swp
+*~
+.DS_Store
