@@ -7,6 +7,7 @@ iLQRSolver::iLQRSolver(const pinocchio::Model& model, double h, int Nt)
 	this->data = pinocchio::Data(this->model);
 	this->h = h;
 	this->Nt = Nt;
+	this->S = Eigen::Matrix<double, 7, 7>::Identity();
 	this->initializeMemory();
 }
 
@@ -16,6 +17,7 @@ iLQRSolver::iLQRSolver(const std::string& urdf_path, double h, int Nt)
 	this->data = pinocchio::Data(this->model);
 	this->h = h;
 	this->Nt = Nt;
+	this->S = Eigen::Matrix<double, 7, 7>::Identity();
 	this->initializeMemory();
 }
 
@@ -42,16 +44,7 @@ iLQRSolver::iLQRSolver(const std::string& urdf_path, const Eigen::Matrix<double,
 void iLQRSolver::initializeMemory()
 {
 	Nx = model.nq + model.nv;
-
-	if (S.size() > 0)
-	{
-		Nu = S.cols();
-	}
-	else
-	{
-		Nu = model.nv;
-		S = Eigen::Matrix<double, 7, 7>::Identity();
-	}
+	Nu = 7;
 
 	Q = Eigen::Matrix<double, 14, 14>::Zero();
 	R = Eigen::Matrix<double, 7, 7>::Zero();
