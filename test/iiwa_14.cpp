@@ -1,4 +1,4 @@
-#include "iLQRSolver.hpp"
+#include "iLQRSolverFixed.hpp"
 
 int main()
 {
@@ -20,21 +20,21 @@ int main()
 	xgoal << 02.00, 1.20, -0.30, -1.50, 0.40, 1.00, 0.50,
 	         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0; */
 
-	Eigen::VectorXd x0(Nx);
+	Eigen::Matrix<double, 14, 1> x0;
 	x0 << 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00,
 	      0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
-        Eigen::VectorXd xgoal(Nx);
+	
+	Eigen::Matrix<double, 14, 1> xgoal;
 	xgoal << 02.00, 1.20, -0.30, -1.50, 0.40, 1.00, 0.50,
 	         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
 
-
-	Eigen::VectorXd Q_diag(Nx);                                   
+	Eigen::Matrix<double, 14, 1> Q_diag;                                   
 	Q_diag << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
 		  1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
-	Eigen::MatrixXd Q = Q_diag.asDiagonal();
-	Eigen::MatrixXd R = 0.1 * Eigen::MatrixXd::Identity(Nu, Nu);
-	Eigen::MatrixXd Qn = 10000.0 * Eigen::MatrixXd::Identity(Nx, Nx);
-
+	
+	Eigen::Matrix<double, 14, 14> Q = Q_diag.asDiagonal();
+	Eigen::Matrix<double, 7, 7> R = 0.1 * Eigen::Matrix<double, 7, 7>::Identity();
+	Eigen::Matrix<double, 14, 14> Qn = 10000.0 * Eigen::Matrix<double, 14, 14>::Identity();
 
 /*	Eigen::VectorXd Q_diag(Nx);                                        //Converge, mas estoura limite
 	Q_diag << 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0,
