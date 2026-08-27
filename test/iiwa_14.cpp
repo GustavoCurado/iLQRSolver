@@ -1,4 +1,4 @@
-#include "iLQRSolverFixed.hpp"
+#include "iLQRSolver.hpp"
 
 int main()
 {
