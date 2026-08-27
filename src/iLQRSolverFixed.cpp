@@ -254,7 +254,7 @@ bool iLQRSolver::backwardPass(double& delta_J, double& max_d)
 
 		Eigen::Matrix<double, 14, 14> Gxx = Q + A.transpose() * P[k+1] * A;
 		Eigen::Matrix<double, 7, 7> Guu = R + B.transpose() * P[k+1] * B;
-		Eigen::Matrix<double, 14, 14> Gxu = A.transpose() * P[k+1] * B;      
+		Eigen::Matrix<double, 14, 7> Gxu = A.transpose() * P[k+1] * B;      
 		Eigen::Matrix<double, 7, 14> Gux = B.transpose() * P[k+1] * A;
 
 		double beta = 1e-5; 
