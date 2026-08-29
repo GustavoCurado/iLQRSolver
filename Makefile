@@ -20,5 +20,5 @@ $(BIN)/acrobot: $(TEST)/acrobot.cpp $(OBJ)/iLQRSolver.o
 $(BIN)/iiwa_14: $(TEST)/iiwa_14.cpp $(OBJ)/iLQRSolver.o
 	$(CXX) $(CXXFLAGS) $(TEST)/iiwa_14.cpp $(OBJ)/iLQRSolver.o -o $(BIN)/iiwa_14 $(LDFLAGS)
 
-$(BIN)/iiwa_14_printless: $(TEST)/iiwa_14_printless.cpp $(OBJ)/iLQRSolver.o
-	$(CXX) $(CXXFLAGS) $(TEST)/iiwa_14_printless.cpp $(OBJ)/iLQRSolver.o -o $(BIN)/iiwa_14_printless $(LDFLAGS)
+$(BIN)/iiwa_14_printless: $(TEST)/iiwa_14_repetition.cpp $(OBJ)/iLQRSolver.o
+	$(CXX) $(CXXFLAGS) $(TEST)/iiwa_14_repetition.cpp $(OBJ)/iLQRSolver.o -o $(BIN)/iiwa_14_repetition $(LDFLAGS)
