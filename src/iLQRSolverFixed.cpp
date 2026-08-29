@@ -68,8 +68,8 @@ void iLQRSolver::initializeMemory()
 
 Eigen::Matrix<double, 14, 1> iLQRSolver::continuousDynamics(const Eigen::Matrix<double, 14, 1>& x, const Eigen::Matrix<double, 7, 1>& u)
 {
-	Eigen::Matrix<double, 7, 1> q = x.head(model.nq);
-	Eigen::Matrix<double, 7, 1> v = x.tail(model.nv);
+	Eigen::Matrix<double, 7, 1> q = x.head<7>();
+	Eigen::Matrix<double, 7, 1> v = x.tail<7>();
 
 	Eigen::Matrix<double, 7, 1> tau = S * u;
 
@@ -80,8 +80,8 @@ Eigen::Matrix<double, 14, 1> iLQRSolver::continuousDynamics(const Eigen::Matrix<
 	pinocchio::aba(model, data, q, v, tau);
 
 	Eigen::Matrix<double, 14, 1> xdot;
-	xdot.head(model.nv) = v;
-	xdot.tail(model.nv) = data.ddq;
+	xdot.head<7>() = v;
+	xdot.tail<7>() = data.ddq;
 
 	return xdot;
 }
@@ -103,8 +103,8 @@ void iLQRSolver::computeDerivatives(const Eigen::Matrix<double, 14, 1>& x, const
 	// Calculates Jx = [0  I ; dqdd/dq dqdd/dv] and Ju = [0 ; dqdd/du]
 	auto getContinuousJacs = [&](const Eigen::Matrix<double, 14, 1>& state, Eigen::Matrix<double, 14, 14>& Jx, Eigen::Matrix<double, 14, 7>& Ju) 
 	{
-		Eigen::Matrix<double, 7, 1> q = state.head(model.nq);
-		Eigen::Matrix<double, 7, 1> v = state.tail(model.nv);
+		Eigen::Matrix<double, 7, 1> q = state.head<7>();
+		Eigen::Matrix<double, 7, 1> v = state.tail<7>();
 
 		Eigen::Matrix<double, 7, 1> tau = S * u - model.damping.cwiseProduct(v);
 
@@ -112,9 +112,9 @@ void iLQRSolver::computeDerivatives(const Eigen::Matrix<double, 14, 1>& x, const
 		pinocchio::computeABADerivatives(model, data, q, v, tau);
 
 		Jx.setZero();
-		Jx.topRightCorner(model.nq, model.nv).setIdentity(); 
-		Jx.bottomLeftCorner(model.nv, model.nq) = data.ddq_dq;
-		Jx.bottomRightCorner(model.nv, model.nv) = data.ddq_dv - data.Minv * model.damping.asDiagonal();
+		Jx.topRightCorner<7, 7>().setIdentity(); 
+		Jx.bottomLeftCorner<7, 7>() = data.ddq_dq;
+		Jx.bottomRightCorner<7,7 >() = data.ddq_dv - data.Minv * model.damping.asDiagonal();
 
 		Ju.setZero();
 		Ju.bottomRows(model.nv) = data.Minv * S;  // dqdd/du = M^-1
