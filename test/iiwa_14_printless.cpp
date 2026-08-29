@@ -45,6 +45,11 @@ int main()
 	ilqr.solve();
 	ilqr.solve();
 	ilqr.solve();
+	ilqr.solve();
+	ilqr.solve();
+	ilqr.solve();
+	ilqr.solve();
+	ilqr.solve();
 
 	return 0;
 }
