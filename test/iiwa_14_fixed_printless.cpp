@@ -41,15 +41,6 @@ int main()
 	ilqr.setGravity(0.0);                    //Gravidade tá zerada
 
 	ilqr.solve();
-	ilqr.solve();
-	ilqr.solve();
-	ilqr.solve();
-	ilqr.solve();
-	ilqr.solve();
-	ilqr.solve();
-	ilqr.solve();
-	ilqr.solve();
-	ilqr.solve();
 
 	return 0;
 }
