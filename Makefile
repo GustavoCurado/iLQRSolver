@@ -1,4 +1,4 @@
-CXX = g++ -g3
+CXX = g++ -g3 -fno-omit-frame-pointer
 INCLUDE = -I ./src/include
 SRC = ./src
 OBJ = ./obj
