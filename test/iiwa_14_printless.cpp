@@ -46,9 +46,6 @@ int main()
 	ilqr.solve();
 	ilqr.solve();
 
-	std::chrono::duration<double, std::milli> duration = end_time - start_time;
-
-
 	return 0;
 }
 
