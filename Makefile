@@ -9,7 +9,7 @@ CXXFLAGS = -std=c++11 -O3 $(shell pkg-config --cflags pinocchio) -DPINOCCHIO_URD
 
 LDFLAGS = $(shell pkg-config --libs pinocchio)
 
-all: $(BIN)/acrobot $(BIN)/iiwa_14 $(BIN)/iiwa_14_fixed
+all: $(BIN)/acrobot $(BIN)/iiwa_14 $(BIN)/iiwa_14_fixed $(BIN)/iiwa_14_printless $(BIN)/iiwa_14_fixed_printless
 
 $(OBJ)/iLQRSolver.o: $(SRC)/iLQRSolver.cpp
 	$(CXX) $(CXXFLAGS) -c $(SRC)/iLQRSolver.cpp -o $(OBJ)/iLQRSolver.o
@@ -25,3 +25,9 @@ $(BIN)/iiwa_14: $(TEST)/iiwa_14.cpp $(OBJ)/iLQRSolver.o
 
 $(BIN)/iiwa_14_fixed: $(TEST)/iiwa_14_fixed.cpp $(OBJ)/iLQRSolverFixed.o
 	$(CXX) $(CXXFLAGS) $(TEST)/iiwa_14_fixed.cpp $(OBJ)/iLQRSolverFixed.o -o $(BIN)/iiwa_14_fixed $(LDFLAGS)
+
+$(BIN)/iiwa_14_printless: $(TEST)/iiwa_14_printless.cpp $(OBJ)/iLQRSolver.o
+	$(CXX) $(CXXFLAGS) $(TEST)/iiwa_14_printless.cpp $(OBJ)/iLQRSolver.o -o $(BIN)/iiwa_14_printless $(LDFLAGS)
+
+$(BIN)/iiwa_14_fixed_printless: $(TEST)/iiwa_14_fixed_printless.cpp $(OBJ)/iLQRSolverFixed.o
+	$(CXX) $(CXXFLAGS) $(TEST)/iiwa_14_fixed_printless.cpp $(OBJ)/iLQRSolverFixed.o -o $(BIN)/iiwa_14_fixed_printless $(LDFLAGS)
