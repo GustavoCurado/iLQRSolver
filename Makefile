@@ -22,3 +22,6 @@ $(BIN)/iiwa_14: $(TEST)/iiwa_14.cpp $(OBJ)/iLQRSolver.o
 
 $(BIN)/iiwa_14_mpc: $(TEST)/iiwa_14_mpc.cpp $(OBJ)/iLQRSolver.o
 	$(CXX) $(CXXFLAGS) $(TEST)/iiwa_14_mpc.cpp $(OBJ)/iLQRSolver.o -o $(BIN)/iiwa_14_mpc $(LDFLAGS)
+
+$(BIN)/iiwa_14_printless: $(TEST)/iiwa_14_printless.cpp $(OBJ)/iLQRSolver.o
+	$(CXX) $(CXXFLAGS) $(TEST)/iiwa_14_printless.cpp $(OBJ)/iLQRSolver.o -o $(BIN)/iiwa_14_printless $(LDFLAGS)
