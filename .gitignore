@@ -15,3 +15,5 @@ __pycache__/
 *~
 .DS_Store
 perf.data
+perf.data.old
+out.perf
