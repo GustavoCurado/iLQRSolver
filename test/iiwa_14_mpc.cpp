@@ -38,12 +38,11 @@ int main()
 
 	ilqr.setBoundaryConditions(x0, xgoal);
 
-	auto inicio_cold = std::chrono::high_resolution_clock::now();
-	ilqr.solve(100, 1e-4);
-	auto fim_cold = std::chrono::high_resolution_clock::now();
+//	auto inicio_cold = std::chrono::high_resolution_clock::now();
+//	ilqr.solve(100, 1e-4);
+//	auto fim_cold = std::chrono::high_resolution_clock::now();
 	
-	std::chrono::duration<double, std::milli> tempo_cold = fim_cold - inicio_cold;
-	std::cout << "Cold Start concluido em: " << tempo_cold.count() << " ms" << std::endl;
+//	std::chrono::duration<double, std::milli> tempo_cold = fim_cold - inicio_cold;
 
 	std::vector<Eigen::VectorXd> traj_real_x;
 	std::vector<Eigen::VectorXd> traj_real_u;
