@@ -1,4 +1,4 @@
-#include "iLQRSolver.hpp"
+#include "iLQRSolverPinocchio.hpp"
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -13,7 +13,7 @@ int main()
 	double Tfinal = 0.2;     
 	int Nt = (int)(Tfinal/h) + 1;
 
-	iLQRSolver ilqr(urdf_filename, h, Nt);
+	iLQRSolverPinocchio ilqr(urdf_filename, h, Nt);
 
 	int Nx = ilqr.getNx();
 	int Nu = ilqr.getNu();

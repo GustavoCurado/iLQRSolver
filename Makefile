@@ -1,5 +1,5 @@
 CXX = g++ -g3 -fno-omit-frame-pointer
-INCLUDE = -I ./src/include
+INCLUDE = -I ./include
 SRC = ./src
 OBJ = ./obj
 BIN = ./bin
@@ -11,17 +11,25 @@ LDFLAGS = $(shell pkg-config --libs pinocchio)
 
 all: $(BIN)/acrobot $(BIN)/iiwa_14 $(BIN)/iiwa_14_mpc $(BIN)/iiwa_14_printless
 
-$(OBJ)/iLQRSolver.o: $(SRC)/iLQRSolver.cpp
-	$(CXX) $(CXXFLAGS) -c $(SRC)/iLQRSolver.cpp -o $(OBJ)/iLQRSolver.o
+$(OBJ)/iLQRSolverBase.o: $(SRC)/iLQRSolverBase.cpp
+	$(CXX) $(CXXFLAGS) -c $(SRC)/iLQRSolverBase.cpp -o $(OBJ)/iLQRSolverBase.o
 
-$(BIN)/acrobot: $(TEST)/acrobot.cpp $(OBJ)/iLQRSolver.o
-	$(CXX) $(CXXFLAGS) $(TEST)/acrobot.cpp $(OBJ)/iLQRSolver.o -o $(BIN)/acrobot $(LDFLAGS)
+$(OBJ)/iLQRSolverPinocchio.o: $(SRC)/iLQRSolverPinocchio.cpp
+	$(CXX) $(CXXFLAGS) -c $(SRC)/iLQRSolverPinocchio.cpp -o $(OBJ)/iLQRSolverPinocchio.o
 
-$(BIN)/iiwa_14: $(TEST)/iiwa_14.cpp $(OBJ)/iLQRSolver.o
-	$(CXX) $(CXXFLAGS) $(TEST)/iiwa_14.cpp $(OBJ)/iLQRSolver.o -o $(BIN)/iiwa_14 $(LDFLAGS)
+$(OBJ)/iLQRSolverOptimized.o: $(SRC)/iLQRSolverOptimized.cpp
+	$(CXX) $(CXXFLAGS) -c $(SRC)/iLQRSolverOptimized.cpp -o $(OBJ)/iLQRSolverOptimized.o
 
-$(BIN)/iiwa_14_mpc: $(TEST)/iiwa_14_mpc.cpp $(OBJ)/iLQRSolver.o
-	$(CXX) $(CXXFLAGS) $(TEST)/iiwa_14_mpc.cpp $(OBJ)/iLQRSolver.o -o $(BIN)/iiwa_14_mpc $(LDFLAGS)
+SOLVER_OBJS = $(OBJ)/iLQRSolverBase.o $(OBJ)/iLQRSolverPinocchio.o $(OBJ)/iLQRSolverOptimized.o
 
-$(BIN)/iiwa_14_printless: $(TEST)/iiwa_14_printless.cpp $(OBJ)/iLQRSolver.o
-	$(CXX) $(CXXFLAGS) $(TEST)/iiwa_14_printless.cpp $(OBJ)/iLQRSolver.o -o $(BIN)/iiwa_14_printless $(LDFLAGS)
+$(BIN)/acrobot: $(TEST)/acrobot.cpp $(SOLVER_OBJS)
+	$(CXX) $(CXXFLAGS) $(TEST)/acrobot.cpp $(SOLVER_OBJS) -o $(BIN)/acrobot $(LDFLAGS)
+
+$(BIN)/iiwa_14: $(TEST)/iiwa_14.cpp $(SOLVER_OBJS)
+	$(CXX) $(CXXFLAGS) $(TEST)/iiwa_14.cpp $(SOLVER_OBJS) -o $(BIN)/iiwa_14 $(LDFLAGS)
+
+$(BIN)/iiwa_14_mpc: $(TEST)/iiwa_14_mpc.cpp $(SOLVER_OBJS)
+	$(CXX) $(CXXFLAGS) $(TEST)/iiwa_14_mpc.cpp $(SOLVER_OBJS) -o $(BIN)/iiwa_14_mpc $(LDFLAGS)
+
+$(BIN)/iiwa_14_printless: $(TEST)/iiwa_14_printless.cpp $(SOLVER_OBJS)
+	$(CXX) $(CXXFLAGS) $(TEST)/iiwa_14_printless.cpp $(SOLVER_OBJS) -o $(BIN)/iiwa_14_printless $(LDFLAGS)

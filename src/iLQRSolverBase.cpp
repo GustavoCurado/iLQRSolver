@@ -1,58 +1,14 @@
-#include "iLQRSolver.hpp"
+#include "iLQRSolverBase.hpp"
 
-
-iLQRSolver::iLQRSolver(const pinocchio::Model& model, double h, int Nt)
+iLQRSolverBase::iLQRSolverBase(double h, int Nt)
 {
-	this->model = model;
-	this->data = pinocchio::Data(this->model);
 	this->h = h;
 	this->Nt = Nt;
-	this->initializeMemory();
+    // Note: Nx and Nu must be initialized by the derived class before initializeMemory is called.
 }
 
-iLQRSolver::iLQRSolver(const std::string& urdf_path, double h, int Nt)
+void iLQRSolverBase::initializeMemory()
 {
-	pinocchio::urdf::buildModel(urdf_path, this->model);
-	this->data = pinocchio::Data(this->model);
-	this->h = h;
-	this->Nt = Nt;
-	this->initializeMemory();
-}
-
-iLQRSolver::iLQRSolver(const pinocchio::Model& model, const Eigen::MatrixXd& S, double h, int Nt)
-{
-	this->model = model;
-	this->data = pinocchio::Data(this->model);
-	this->S = S;
-	this->h = h;
-	this->Nt = Nt;
-	this->initializeMemory();
-}
-
-iLQRSolver::iLQRSolver(const std::string& urdf_path, const Eigen::MatrixXd& S, double h, int Nt)
-{
-	pinocchio::urdf::buildModel(urdf_path, this->model);
-	this->data = pinocchio::Data(this->model);
-	this->S = S;
-	this->h = h;
-	this->Nt = Nt;
-	this->initializeMemory();
-}
-
-void iLQRSolver::initializeMemory()
-{
-	Nx = model.nq + model.nv;
-
-	if (S.size() > 0)
-	{
-		Nu = S.cols();
-	}
-	else
-	{
-		Nu = model.nv;
-		S = Eigen::MatrixXd::Identity(model.nv, model.nv);
-	}
-
 	Q = Eigen::MatrixXd::Zero(Nx, Nx);
 	R = Eigen::MatrixXd::Zero(Nu, Nu);
 	Qn = Eigen::MatrixXd::Zero(Nx, Nx);
@@ -73,27 +29,7 @@ void iLQRSolver::initializeMemory()
 	P.assign(Nt, Eigen::MatrixXd::Zero(Nx, Nx));
 }
 
-Eigen::VectorXd iLQRSolver::continuousDynamics(const Eigen::VectorXd& x, const Eigen::VectorXd& u)
-{
-	Eigen::VectorXd q = x.head(model.nq);
-	Eigen::VectorXd v = x.tail(model.nv);
-
-	Eigen::VectorXd tau = S * u;
-
-	//Subtracts viscous damping from the torques
-	tau -= model.damping.cwiseProduct(v);
-
-	//Calculates joint acceleration and saves it into data
-	pinocchio::aba(model, data, q, v, tau);
-
-	Eigen::VectorXd xdot(Nx);
-	xdot.head(model.nv) = v;
-	xdot.tail(model.nv) = data.ddq;
-
-	return xdot;
-}
-
-Eigen::VectorXd iLQRSolver::discreteDynamics(const Eigen::VectorXd& x, const Eigen::VectorXd& u)
+Eigen::VectorXd iLQRSolverBase::discreteDynamics(const Eigen::VectorXd& x, const Eigen::VectorXd& u)
 {
 	//The 4th-order Runge-Kutta method is used for dynamics discretization here
 
@@ -105,28 +41,8 @@ Eigen::VectorXd iLQRSolver::discreteDynamics(const Eigen::VectorXd& x, const Eig
 	return x + (h / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
 }
 
-void iLQRSolver::computeDerivatives(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::MatrixXd& A, Eigen::MatrixXd& B)
+void iLQRSolverBase::computeDerivatives(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::MatrixXd& A, Eigen::MatrixXd& B)
 {
-	// Calculates Jx = [0  I ; dqdd/dq dqdd/dv] and Ju = [0 ; dqdd/du]
-	auto getContinuousJacs = [&](const Eigen::VectorXd& state, Eigen::MatrixXd& Jx, Eigen::MatrixXd& Ju) 
-	{
-		Eigen::VectorXd q = state.head(model.nq);
-		Eigen::VectorXd v = state.tail(model.nv);
-
-		Eigen::VectorXd tau = S * u - model.damping.cwiseProduct(v);
-
-		//Calculates dqdd/dq and dqdd/dv and saves it in data
-		pinocchio::computeABADerivatives(model, data, q, v, tau);
-
-		Jx.setZero(Nx, Nx);
-		Jx.topRightCorner(model.nq, model.nv).setIdentity(); 
-		Jx.bottomLeftCorner(model.nv, model.nq) = data.ddq_dq;
-		Jx.bottomRightCorner(model.nv, model.nv) = data.ddq_dv - data.Minv * model.damping.asDiagonal();
-
-		Ju.setZero(Nx, Nu);
-		Ju.bottomRows(model.nv) = data.Minv * S;  // dqdd/du = M^-1
-	};
-
 	Eigen::VectorXd k1 = continuousDynamics(x, u);
 	Eigen::VectorXd k2 = continuousDynamics(x + 0.5 * h * k1, u);
 	Eigen::VectorXd k3 = continuousDynamics(x + 0.5 * h * k2, u);
@@ -134,10 +50,10 @@ void iLQRSolver::computeDerivatives(const Eigen::VectorXd& x, const Eigen::Vecto
 	Eigen::MatrixXd Jx1, Jx2, Jx3, Jx4;
 	Eigen::MatrixXd Ju1, Ju2, Ju3, Ju4;
 
-	getContinuousJacs(x, Jx1, Ju1);
-	getContinuousJacs(x + 0.5 * h * k1, Jx2, Ju2);
-	getContinuousJacs(x + 0.5 * h * k2, Jx3, Ju3);
-	getContinuousJacs(x + h * k3, Jx4, Ju4);
+	getContinuousJacs(x, u, Jx1, Ju1);
+	getContinuousJacs(x + 0.5 * h * k1, u, Jx2, Ju2);
+	getContinuousJacs(x + 0.5 * h * k2, u, Jx3, Ju3);
+	getContinuousJacs(x + h * k3, u, Jx4, Ju4);
 
 	Eigen::MatrixXd I = Eigen::MatrixXd::Identity(Nx, Nx);
 
@@ -156,19 +72,19 @@ void iLQRSolver::computeDerivatives(const Eigen::VectorXd& x, const Eigen::Vecto
 	B = (h / 6.0) * (du_k1 + 2.0 * du_k2 + 2.0 * du_k3 + du_k4);
 }
 
-double iLQRSolver::stageCost(const Eigen::VectorXd& x, const Eigen::VectorXd& u)
+double iLQRSolverBase::stageCost(const Eigen::VectorXd& x, const Eigen::VectorXd& u)
 {
 	Eigen::VectorXd error = x - xgoal;
 	return 0.5 * (error.dot(Q * error) + u.dot(R * u));
 }
 
-double iLQRSolver::terminalCost(const Eigen::VectorXd& x)
+double iLQRSolverBase::terminalCost(const Eigen::VectorXd& x)
 {
 	Eigen::VectorXd error = x - xgoal;
 	return 0.5 * error.dot(Qn * error);
 }
 
-double iLQRSolver::calculateTotalCost(const std::vector<Eigen::VectorXd>& x_traj, const std::vector<Eigen::VectorXd>& u_traj)
+double iLQRSolverBase::calculateTotalCost(const std::vector<Eigen::VectorXd>& x_traj, const std::vector<Eigen::VectorXd>& u_traj)
 {
 	double total_cost = 0.0;
 
@@ -182,34 +98,14 @@ double iLQRSolver::calculateTotalCost(const std::vector<Eigen::VectorXd>& x_traj
 	return total_cost;
 }
 
-void iLQRSolver::setSelectionMatrix(const Eigen::MatrixXd& S)
-{
-	this->S = S;
-
-	//The problem with this function is that, if S changes after the class constructor has been called, we are forced to change the dimensions of many variables, including R
-	//Because of that, calling setCosts() after this one would be mandatory
-	if (this->Nu != S.cols())
-	{
-		this->Nu = S.cols();
-
-		this->R = Eigen::MatrixXd::Zero(this->Nu, this->Nu);
-
-		this->utraj.assign(Nt - 1, Eigen::VectorXd::Zero(this->Nu));
-		this->utraj_new.assign(Nt - 1, Eigen::VectorXd::Zero(this->Nu));
-
-		this->d.assign(Nt - 1, Eigen::VectorXd::Zero(this->Nu));
-		this->K.assign(Nt - 1, Eigen::MatrixXd::Zero(this->Nu, this->Nx));
-	}
-}
-
-void iLQRSolver::setCosts(const Eigen::MatrixXd& Q, const Eigen::MatrixXd& R, const Eigen::MatrixXd& Qn)
+void iLQRSolverBase::setCosts(const Eigen::MatrixXd& Q, const Eigen::MatrixXd& R, const Eigen::MatrixXd& Qn)
 {
 	this->Q = Q;
 	this->R = R;
 	this->Qn = Qn;
 }
 
-void iLQRSolver::setBoundaryConditions(const Eigen::VectorXd& x0, const Eigen::VectorXd& xgoal)
+void iLQRSolverBase::setBoundaryConditions(const Eigen::VectorXd& x0, const Eigen::VectorXd& xgoal)
 {
 	this->x0 = x0;
 	this->xgoal = xgoal;
@@ -221,17 +117,7 @@ void iLQRSolver::setBoundaryConditions(const Eigen::VectorXd& x0, const Eigen::V
 	}
 }
 
-void iLQRSolver::setViscousDamping(const Eigen::VectorXd& c)
-{
-	this->model.damping = c;
-}
-
-void iLQRSolver::setGravity(double g_z)
-{
-	this->model.gravity.linear() = Eigen::Vector3d(0.0, 0.0, g_z);
-}
-
-bool iLQRSolver::backwardPass(double& delta_J, double& max_d)
+bool iLQRSolverBase::backwardPass(double& delta_J, double& max_d)
 {
 	p.back() = Qn * (xtraj.back() - xgoal);
 	P.back() = Qn;
@@ -291,7 +177,7 @@ bool iLQRSolver::backwardPass(double& delta_J, double& max_d)
 	return true;
 }
 
-double iLQRSolver::forwardRollout(double alpha)
+double iLQRSolverBase::forwardRollout(double alpha)
 {
 	xtraj_new[0] = x0;
 
@@ -306,7 +192,7 @@ double iLQRSolver::forwardRollout(double alpha)
 	return calculateTotalCost(xtraj_new, utraj_new);
 }
 
-bool iLQRSolver::solve(int max_iters, double tol)
+bool iLQRSolverBase::solve(int max_iters, double tol)
 {
 	//Initial rollout
 	xtraj[0] = x0;
