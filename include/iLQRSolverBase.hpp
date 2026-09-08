@@ -9,7 +9,6 @@
 #include <vector>
 #include <chrono>
 
-#define EIGEN_DEFAULT_TO_ROW_MAJOR
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::VectorXd)

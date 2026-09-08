@@ -9,7 +9,7 @@ CXXFLAGS = -std=c++11 -O3 $(shell pkg-config --cflags pinocchio) -DPINOCCHIO_URD
 
 LDFLAGS = $(shell pkg-config --libs pinocchio)
 
-all: $(BIN)/acrobot $(BIN)/iiwa_14 $(BIN)/iiwa_14_mpc $(BIN)/iiwa_14_printless
+all: $(BIN)/acrobot $(BIN)/iiwa_14 $(BIN)/iiwa_14_mpc $(BIN)/iiwa_14_printless $(BIN)/opt_iiwa_14
 
 $(OBJ)/iLQRSolverBase.o: $(SRC)/iLQRSolverBase.cpp
 	$(CXX) $(CXXFLAGS) -c $(SRC)/iLQRSolverBase.cpp -o $(OBJ)/iLQRSolverBase.o
@@ -33,3 +33,6 @@ $(BIN)/iiwa_14_mpc: $(TEST)/iiwa_14_mpc.cpp $(SOLVER_OBJS)
 
 $(BIN)/iiwa_14_printless: $(TEST)/iiwa_14_printless.cpp $(SOLVER_OBJS)
 	$(CXX) $(CXXFLAGS) $(TEST)/iiwa_14_printless.cpp $(SOLVER_OBJS) -o $(BIN)/iiwa_14_printless $(LDFLAGS)
+
+$(BIN)/opt_iiwa_14: $(TEST)/opt_iiwa_14.cpp $(SOLVER_OBJS)
+	$(CXX) $(CXXFLAGS) $(TEST)/opt_iiwa_14.cpp $(SOLVER_OBJS) -o $(BIN)/opt_iiwa_14 $(LDFLAGS)

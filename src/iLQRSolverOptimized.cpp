@@ -38,11 +38,11 @@ Eigen::VectorXd iLQRSolverOptimized::continuousDynamics(const Eigen::VectorXd& x
         tau[i] = u[i]; // Assumindo S = Identidade
     }
     
-    double qdd[7];
-    double Minv[49];
+    double qdd[7] = {0.0};
+    double Minv[49] = {0.0};
     
-    // Chamada do Plancher (Templates: T, MPC_MODE=false, VEL_DAMPING=false, DENSE_MINV=false)
-    forwardDynamics<double, false, false, false>(qdd, tau, v, q, Minv);
+    // Chamada do Plancher (Templates: T, MPC_MODE=false, VEL_DAMPING=true, DENSE_MINV=false)
+    forwardDynamics<double, false, true, false>(qdd, tau, v, q, Minv);
     
     Eigen::VectorXd xdot = Eigen::VectorXd::Zero(14);
     xdot.head<7>() = x.tail<7>();
@@ -55,7 +55,10 @@ Eigen::VectorXd iLQRSolverOptimized::continuousDynamics(const Eigen::VectorXd& x
 
 void iLQRSolverOptimized::getContinuousJacs(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::MatrixXd& Jx, Eigen::MatrixXd& Ju)
 {
-    knot<double> currKnot;
+    // É extremamente importante inicializar com zeros, pois o Plancher lê qdd
+    // internamente durante o Forward Pass para calcular o bias. Se não inicializarmos,
+    // ele vai ler lixo de memória da stack e explodir a simulação inteira!
+    knot<double> currKnot = {0};
     for(int i = 0; i < 7; i++) {
         currKnot.q[i] = x[i];
         currKnot.qd[i] = x[i + 7];
@@ -64,17 +67,19 @@ void iLQRSolverOptimized::getContinuousJacs(const Eigen::VectorXd& x, const Eige
     
     double dqdd_array[98];
     
-    // Chamada do gradiente do Plancher (Templates: T, QDD_MINV_PASSED_IN=false, MPC_MODE=false, VEL_DAMPING=false, EXTERNAL_TI=false)
-    forwardDynamicsGradient<double, false, false, false, false>(dqdd_array, &currKnot, this->d_T, this->d_I);
+    // Chamada do gradiente do Plancher (Templates: T, QDD_MINV_PASSED_IN=false, MPC_MODE=false, VEL_DAMPING=true, EXTERNAL_TI=false)
+    forwardDynamicsGradient<double, false, false, true, false>(dqdd_array, &currKnot, this->d_T, this->d_I);
     
     Jx.setZero(14, 14);
     Jx.topRightCorner<7, 7>().setIdentity();
     
-    // O código do Plancher e o math.h lidam com as matrizes no formato Column-Major (que é o padrão C++ para simulações assim).
-    // Como no seu iLQRSolverBase.hpp o Eigen está setado para Row-Major (#define EIGEN_DEFAULT_TO_ROW_MAJOR),
-    // nós precisamos usar 'Eigen::ColMajor' no Map para que a tradução entre as memórias seja perfeita!
+    // O código do Plancher gera o array em formato Column-Major nativamente.
     Jx.bottomLeftCorner<7, 7>() = Eigen::Map<Eigen::Matrix<double, 7, 7, Eigen::ColMajor>>(&dqdd_array[0]);
     Jx.bottomRightCorner<7, 7>() = Eigen::Map<Eigen::Matrix<double, 7, 7, Eigen::ColMajor>>(&dqdd_array[49]);
+    
+    // O código do Plancher gera o M inverso apenas como uma matriz triangular superior
+    // para economizar cálculos. Precisamos espelhar a matriz para preencher a parte de baixo!
+    triangularToDense<double, 7, true>(currKnot.Minv);
     
     Ju.setZero(14, 7);
     Ju.bottomRows<7>() = Eigen::Map<Eigen::Matrix<double, 7, 7, Eigen::ColMajor>>(currKnot.Minv);
