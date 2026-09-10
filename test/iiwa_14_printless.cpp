@@ -6,7 +6,8 @@ int main()
 
 	double h = 0.01;
 	double Tfinal = 5.0;
-	int Nt = (int)(Tfinal/h) + 1;
+//	int Nt = (int)(Tfinal/h) + 1;
+	int Nt = 20;
 
 	iLQRSolverPinocchio ilqr(urdf_filename, h, Nt);
 
