@@ -22,6 +22,8 @@ class iLQRSolverBase
 		int Nt;   //Horizon size
 		double Tfinal;
 
+		bool use_parallel_derivatives = false;
+
 		//Cost matrixes
 		Eigen::MatrixXd Q;
 		Eigen::MatrixXd R;

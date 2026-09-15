@@ -10,6 +10,7 @@ static double g_plancher_gravity = 9.81;
 
 iLQRSolverOptimized::iLQRSolverOptimized(double h, int Nt) : iLQRSolverBase(h, Nt)
 {
+    this->use_parallel_derivatives = true;
     this->initializeMemory();
 }
 

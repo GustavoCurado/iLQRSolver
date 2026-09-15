@@ -4,8 +4,8 @@ int main()
 {
 	double h = 0.01;
 	double Tfinal = 5.0;
-//	int Nt = (int)(Tfinal/h) + 1;
-	int Nt = 20;
+	int Nt = (int)(Tfinal/h) + 1;
+//	int Nt = 20;
 
 	iLQRSolverOptimized ilqr(h, Nt);
 

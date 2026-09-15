@@ -127,13 +127,26 @@ bool iLQRSolverBase::backwardPass(double& delta_J, double& max_d)
 
 	Eigen::MatrixXd A(Nx, Nx);
 	Eigen::MatrixXd B(Nx, Nu);
+	std::vector<Eigen::MatrixXd> Atraj(Nt-1), Btraj(Nt-1);
+
+	#pragma omp parallel for if(use_parallel_derivatives)
+	for (int k = 0; k < Nt - 1; k++)
+	{
+		Eigen::MatrixXd local_A(Nx, Nx);
+		Eigen::MatrixXd local_B(Nx, Nu);
+		computeDerivatives(xtraj[k], utraj[k], local_A, local_B);
+		Atraj[k] = local_A;
+		Btraj[k] = local_B;
+	}
 
 	for (int k = Nt - 2; k >= 0; k--)
 	{
 		Eigen::VectorXd q = Q * (xtraj[k] - xgoal);
 		Eigen::VectorXd r = R * utraj[k];    
 
-		computeDerivatives(xtraj[k], utraj[k], A, B);
+
+		A = Atraj[k];
+		B = Btraj[k];
 
 		Eigen::VectorXd gx = q + A.transpose() * p[k+1];
 		Eigen::VectorXd gu = r + B.transpose() * p[k+1];
