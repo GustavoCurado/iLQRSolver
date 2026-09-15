@@ -60,7 +60,9 @@ int main()
 
 	for (int i = 0; i < mpc_steps; ++i)
 	{
-		ilqr.setBoundaryConditions(estado_atual, xgoal);
+		if (i > 0) {
+			ilqr.advanceMPCStep(estado_atual);
+		}
 		
 		auto inicio_rti = std::chrono::high_resolution_clock::now();
 		ilqr.solve(1);
@@ -81,7 +83,9 @@ int main()
 		traj_real_K.push_back(ganho);
 		traj_real_x.push_back(estado_atual);
 	}
-	
+	std::cout << "\nEstado final alcancado:\n" << traj_real_x.back().transpose() << std::endl;
+	std::cout << std::endl << "Erro |xgoal - xtraj|:\n" << (xgoal.transpose() - traj_real_x.back().transpose()).cwiseAbs() << std::endl << std::endl;
+
 	std::cout << "Tempo medio por passo do MPC (Warm-Start): " << tempo_total_mpc / mpc_steps << " ms" << std::endl;
 
 	std::ofstream arquivo("trajetoria_iiwa.csv");

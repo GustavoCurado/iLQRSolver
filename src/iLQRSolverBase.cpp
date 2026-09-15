@@ -252,3 +252,17 @@ bool iLQRSolverBase::solve(int max_iters, double tol)
 
 	return true;
 }
+
+void iLQRSolverBase::advanceMPCStep(const Eigen::VectorXd& estado_atual)
+{
+	this->x0 = estado_atual;
+	if (!this->xtraj.empty()) {
+		this->xtraj[0] = this->x0;
+		this->xtraj_new[0] = this->x0;
+	}
+
+	for (int k = 0; k < Nt - 2; ++k)
+	{
+		utraj[k] = utraj[k+1];
+	}
+}

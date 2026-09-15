@@ -66,6 +66,7 @@ class iLQRSolverBase
 
 		void setCosts(const Eigen::MatrixXd& Q, const Eigen::MatrixXd& R, const Eigen::MatrixXd& Qn);
 		void setBoundaryConditions(const Eigen::VectorXd& x0, const Eigen::VectorXd& xgoal);
+		void advanceMPCStep(const Eigen::VectorXd& estado_atual);
 
 		bool solve(int max_iters = 1000, double tol = 1e-3);
 
