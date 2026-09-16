@@ -27,11 +27,11 @@ int main()
 	         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
 
 	Eigen::Matrix<double, 14, 1> Q_diag;                                   
-	Q_diag << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-		  10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0;
+	Q_diag << 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01,
+		  0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001;
 	Eigen::MatrixXd Q = Q_diag.asDiagonal();
 	Eigen::MatrixXd R = 0.001 * Eigen::MatrixXd::Identity(Nu, Nu);
-	Eigen::MatrixXd Qn = 100.0 * Eigen::MatrixXd::Identity(Nx, Nx);
+	Eigen::MatrixXd Qn = 1000.0 * Eigen::MatrixXd::Identity(Nx, Nx);
 
 	ilqr.setCosts(Q, R, Qn);
 	ilqr.setGravity(0.0);  //No gravity
