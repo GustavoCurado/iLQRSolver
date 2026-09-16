@@ -11,7 +11,8 @@ int main()
 	
 	double h = 0.01;         
 	double Tfinal = 0.5;     
-	int Nt = (int)(Tfinal/h) + 1;
+	//int Nt = (int)(Tfinal/h) + 1;
+	int Nt = 64;
 
 	iLQRSolverOptimized ilqr(h, Nt);
 
@@ -26,12 +27,14 @@ int main()
 	xgoal << 2.00, 1.20, -0.30, -1.50, 0.40, 1.00, 0.50,
 	         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
 
-	Eigen::Matrix<double, 14, 1> Q_diag;                                   
+	Eigen::Matrix<double, 14, 1> Q_diag, Qn_diag;                                   
 	Q_diag << 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01,
-		  0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001;
+		  10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0;
 	Eigen::MatrixXd Q = Q_diag.asDiagonal();
-	Eigen::MatrixXd R = 0.001 * Eigen::MatrixXd::Identity(Nu, Nu);
-	Eigen::MatrixXd Qn = 1000.0 * Eigen::MatrixXd::Identity(Nx, Nx);
+	Eigen::MatrixXd R = 0.01 * Eigen::MatrixXd::Identity(Nu, Nu);
+	Qn_diag << 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0, 1000.0,
+		   10.0,   10.0,   10.0,   10.0,   10.0,   10.0,   10.0;
+	Eigen::MatrixXd Qn = Qn_diag.asDiagonal();
 
 	ilqr.setCosts(Q, R, Qn);
 	ilqr.setGravity(0.0);  //No gravity
