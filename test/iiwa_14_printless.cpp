@@ -7,7 +7,7 @@ int main()
 	double h = 0.01;
 	double Tfinal = 5.0;
 	int Nt = (int)(Tfinal/h) + 1;
-//	int Nt = 20;
+//	int Nt = 64;
 
 	iLQRSolverPinocchio ilqr(urdf_filename, h, Nt);
 
@@ -30,12 +30,11 @@ int main()
 	         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
 
 	Eigen::Matrix<double, 14, 1> Q_diag;                                   
-	Q_diag << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-		  1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
-	
-	Eigen::Matrix<double, 14, 14> Q = Q_diag.asDiagonal();
-	Eigen::Matrix<double, 7, 7> R = 0.1 * Eigen::Matrix<double, 7, 7>::Identity();
-	Eigen::Matrix<double, 14, 14> Qn = 10000.0 * Eigen::Matrix<double, 14, 14>::Identity();
+	Q_diag << 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01,
+		  0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001;
+	Eigen::MatrixXd Q = Q_diag.asDiagonal();
+	Eigen::MatrixXd R = 0.001 * Eigen::MatrixXd::Identity(Nu, Nu);
+	Eigen::MatrixXd Qn = 1000.0 * Eigen::MatrixXd::Identity(Nx, Nx);
 
 	ilqr.setCosts(Q, R, Qn);
 	ilqr.setBoundaryConditions(x0, xgoal);
