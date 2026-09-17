@@ -1,5 +1,7 @@
 #include "iLQRSolverBase.hpp"
 
+#define N_THREADS 4
+
 iLQRSolverBase::iLQRSolverBase(double h, int Nt)
 {
 	this->h = h;
@@ -129,7 +131,7 @@ bool iLQRSolverBase::backwardPass(double& delta_J, double& max_d)
 	Eigen::MatrixXd B(Nx, Nu);
 	std::vector<Eigen::MatrixXd> Atraj(Nt-1), Btraj(Nt-1);
 
-	#pragma omp parallel for if(use_parallel_derivatives)
+	#pragma omp parallel for num_threads(N_THREADS) if(use_parallel_derivatives)
 	for (int k = 0; k < Nt - 1; k++)
 	{
 		Eigen::MatrixXd local_A(Nx, Nx);
