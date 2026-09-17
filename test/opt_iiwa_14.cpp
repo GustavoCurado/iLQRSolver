@@ -27,12 +27,11 @@ int main()
 	         0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
 
 	Eigen::Matrix<double, 14, 1> Q_diag;                                   
-	Q_diag << 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-		  1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0;
-	
-	Eigen::Matrix<double, 14, 14> Q = Q_diag.asDiagonal();
-	Eigen::Matrix<double, 7, 7> R = 0.1 * Eigen::Matrix<double, 7, 7>::Identity();
-	Eigen::Matrix<double, 14, 14> Qn = 10000.0 * Eigen::Matrix<double, 14, 14>::Identity();
+	Q_diag << 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01,
+		  0.001, 0.001, 0.001, 0.001, 0.001, 0.001, 0.001;
+	Eigen::MatrixXd Q = Q_diag.asDiagonal();
+	Eigen::MatrixXd R = 0.001 * Eigen::MatrixXd::Identity(Nu, Nu);
+	Eigen::MatrixXd Qn = 1000.0 * Eigen::MatrixXd::Identity(Nx, Nx);
 
 /*	Eigen::VectorXd Q_diag(Nx);                                        //Converge, mas estoura limite
 	Q_diag << 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0,
@@ -49,7 +48,7 @@ int main()
 	ilqr.setGravity(0.0);                    //Gravidade tá zerada
 
 	auto start_time = std::chrono::high_resolution_clock::now();
-	ilqr.solve(1);
+	ilqr.solve();
 	auto end_time = std::chrono::high_resolution_clock::now();
 
 	std::chrono::duration<double, std::milli> duration = end_time - start_time;
