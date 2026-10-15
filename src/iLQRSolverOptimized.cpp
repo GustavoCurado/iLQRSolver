@@ -6,7 +6,7 @@ static double g_plancher_gravity = 9.81;
 // Enganamos o código do Plancher para usar a nossa variável dinâmica
 #define GRAVITY g_plancher_gravity
 
-#include "../../fast-rbd-gradients/helpers_CPU/dynamicsGradient.h"
+#include "../utils/dynamicsGradient.h"
 
 iLQRSolverOptimized::iLQRSolverOptimized(double h, int Nt) : iLQRSolverBase(h, Nt)
 {
