@@ -42,3 +42,8 @@ $(BIN)/opt_iiwa_14_printless: $(TEST)/opt_iiwa_14_printless.cpp $(SOLVER_OBJS)
 
 $(BIN)/opt_iiwa_14_mpc: $(TEST)/opt_iiwa_14_mpc.cpp $(SOLVER_OBJS)
 	$(CXX) $(CXXFLAGS) $(TEST)/opt_iiwa_14_mpc.cpp $(SOLVER_OBJS) -o $(BIN)/opt_iiwa_14_mpc $(LDFLAGS)
+
+clean:
+	rm -f $(OBJ)/*.o $(BIN)/*
+
+.PHONY: all clean
