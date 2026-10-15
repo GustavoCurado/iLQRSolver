@@ -59,7 +59,7 @@ int main()
 	S << 1.0, 
 	     0.0;
 
-	double h = 0.1;
+	double h = 0.05;
 	double Tfinal = 10.0;
 	int Nt = (int)(Tfinal/h) + 1;
 
