@@ -1,4 +1,4 @@
-#include "iLQRSolver.hpp"
+#include "iLQRSolverPinocchio.hpp"
 
 void buildAcrobotModel(pinocchio::Model& model)
 {
@@ -63,7 +63,7 @@ int main()
 	double Tfinal = 10.0;
 	int Nt = (int)(Tfinal/h) + 1;
 
-	iLQRSolver ilqr(model, S, h, Nt);
+	iLQRSolverPinocchio ilqr(model, S, h, Nt);
 
 	Eigen::Vector4d x0(-M_PI/2.0, 0.0, 0.0, 0.0);
         Eigen::Vector4d xgoal(M_PI/2.0, 0.0, 0.0, 0.0);

@@ -1,32 +1,5 @@
 #pragma once
 
-//#include "fast-rbd-gradients/utils/experiment_helpers.h" // include constants and other experiment consistency helpers
-
-#define BOOST_BIND_GLOBAL_PLACEHOLDERS // fixes a warning I get
-
-#include "pinocchio/spatial/fwd.hpp"
-#include "pinocchio/spatial/se3.hpp"
-#include "pinocchio/multibody/visitor.hpp"
-#include "pinocchio/multibody/model.hpp"
-#include "pinocchio/multibody/data.hpp"
-#include "pinocchio/algorithm/joint-configuration.hpp"
-#include "pinocchio/algorithm/kinematics.hpp"
-#include "pinocchio/algorithm/kinematics-derivatives.hpp"
-#include "pinocchio/algorithm/rnea-derivatives.hpp"
-#include "pinocchio/algorithm/aba-derivatives.hpp"
-#include "pinocchio/algorithm/crba.hpp"
-#include "pinocchio/algorithm/centroidal.hpp"
-#include "pinocchio/algorithm/aba.hpp"
-#include "pinocchio/algorithm/rnea.hpp"
-#include "pinocchio/algorithm/cholesky.hpp"
-#include "pinocchio/algorithm/jacobian.hpp"
-#include "pinocchio/algorithm/center-of-mass.hpp"
-#include "pinocchio/algorithm/compute-all-terms.hpp"
-#include "pinocchio/algorithm/kinematics.hpp"
-#include "pinocchio/parsers/urdf.hpp"
-#include "pinocchio/parsers/sample-models.hpp"
-#include "pinocchio/container/aligned-vector.hpp"
-
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
@@ -36,27 +9,20 @@
 #include <vector>
 #include <chrono>
 
-#define EIGEN_DEFAULT_TO_ROW_MAJOR
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
 EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::VectorXd)
 
-//LEMBRA DE MODIFICAR ESSA MONTANHA DE INCLUDE; PODE TER COISA DESNECESSÁRIA AQUI
-
-class iLQRSolver
+class iLQRSolverBase
 {
-	private:
-		pinocchio::Model model;
-		pinocchio::Data data;
-
+	protected:
 		int Nx;
 		int Nu;
 		double h; //Time step
 		int Nt;   //Horizon size
 		double Tfinal;
-		
-		//Actuator selection matrix
-		Eigen::MatrixXd S;
+
+		bool use_parallel_derivatives = false;
 
 		//Cost matrixes
 		Eigen::MatrixXd Q;
@@ -79,7 +45,9 @@ class iLQRSolver
 
 		void initializeMemory();
 
-		Eigen::VectorXd continuousDynamics(const Eigen::VectorXd& x, const Eigen::VectorXd& u); // x' = f(x, u)
+		virtual Eigen::VectorXd continuousDynamics(const Eigen::VectorXd& x, const Eigen::VectorXd& u) = 0; // x' = f(x, u)
+		virtual void getContinuousJacs(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::MatrixXd& Jx, Eigen::MatrixXd& Ju) = 0;
+
 		Eigen::VectorXd discreteDynamics(const Eigen::VectorXd& x, const Eigen::VectorXd& u);   // xk+1 = f(xk, uk)
 
 		//Calculates A = df/dx and B = df/du; f being discreteDynamics
@@ -93,16 +61,12 @@ class iLQRSolver
 		double forwardRollout(double alpha);
 
 	public:
-		iLQRSolver(const pinocchio::Model& model, double h, int Nt);
-		iLQRSolver(const std::string& urdf_path, double h, int Nt);
-		iLQRSolver(const pinocchio::Model& model, const Eigen::MatrixXd& S, double h, int Nt);
-		iLQRSolver(const std::string& urdf_path, const Eigen::MatrixXd& S, double h, int Nt);
+		iLQRSolverBase(double h, int Nt);
+		virtual ~iLQRSolverBase() = default;
 
-		void setSelectionMatrix(const Eigen::MatrixXd& S);
 		void setCosts(const Eigen::MatrixXd& Q, const Eigen::MatrixXd& R, const Eigen::MatrixXd& Qn);
 		void setBoundaryConditions(const Eigen::VectorXd& x0, const Eigen::VectorXd& xgoal);
-		void setViscousDamping(const Eigen::VectorXd& c);
-		void setGravity(double g_z);
+		void advanceMPCStep(const Eigen::VectorXd& estado_atual);
 
 		bool solve(int max_iters = 1000, double tol = 1e-3);
 
@@ -112,4 +76,3 @@ class iLQRSolver
 		std::vector<Eigen::VectorXd> getUTraj() const { return utraj; }
 		std::vector<Eigen::MatrixXd> getKTraj() const { return K; }
 };
-
