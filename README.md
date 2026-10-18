@@ -106,7 +106,6 @@ Developed and tested with Pinocchio 3.9.0 on Linux Mint 21.3.
 From the repository root:
 
 ```bash
-mkdir -p obj bin
 make
 ```
 
@@ -115,7 +114,6 @@ This builds all examples into `bin/`. Use `make clean` to remove the build produ
 ### Building only the Optimized backend (without Pinocchio)
 
 ```bash
-mkdir -p obj bin
 g++ -std=c++11 -O3 -fopenmp -I include -c src/iLQRSolverBase.cpp      -o obj/iLQRSolverBase.o
 g++ -std=c++11 -O3 -fopenmp -I include -c src/iLQRSolverOptimized.cpp -o obj/iLQRSolverOptimized.o
 g++ -std=c++11 -O3 -fopenmp -I include test/opt_iiwa_14.cpp \
