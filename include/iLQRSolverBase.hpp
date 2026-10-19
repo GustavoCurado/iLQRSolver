@@ -1,5 +1,7 @@
 #pragma once
 
+#define N_THREADS 4
+
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>

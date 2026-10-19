@@ -1,7 +1,5 @@
 #include "iLQRSolverBase.hpp"
 
-#define N_THREADS 4
-
 iLQRSolverBase::iLQRSolverBase(double h, int Nt)
 {
 	this->h = h;
