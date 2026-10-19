@@ -6,8 +6,8 @@ class iLQRSolverOptimized : public iLQRSolverBase
 {
 	private:
 		// Arrays fixos para o robô Kuka LBR iiwa 14 (7 juntas) exigidos pelo código do Plancher
-		double d_T[36 * 7]; // Transformações
-		double d_I[36 * 7]; // Inércias
+		double d_T[36 * 7 * N_THREADS]; // Transformações
+		double d_I[36 * 7 * N_THREADS]; // Inércias
 
 		void initializeMemory();
 

@@ -1,5 +1,7 @@
 #include "iLQRSolverOptimized.hpp"
 
+#include <omp.h>
+
 // Variável para controlar a gravidade
 static double g_plancher_gravity = 9.81;
 
@@ -23,8 +25,11 @@ void iLQRSolverOptimized::initializeMemory()
     iLQRSolverBase::initializeMemory(); // Chama a inicialização base (matrizes Q, R, xtraj, etc.)
 
     // Inicializa as transformações e inércias hardcoded do Plancher
-    initTransforms<double>(this->d_T);
-    initInertiaTensors<double>(this->d_I);
+    for (int tid = 0; tid < N_THREADS; tid++)
+    {
+        initTransforms<double>(&this->d_T[36*7*tid]);
+        initInertiaTensors<double>(&this->d_I[36*7*tid]);
+    }
 }
 
 Eigen::VectorXd iLQRSolverOptimized::continuousDynamics(const Eigen::VectorXd& x, const Eigen::VectorXd& u)
@@ -63,11 +68,13 @@ void iLQRSolverOptimized::getContinuousJacs(const Eigen::VectorXd& x, const Eige
         currKnot.u[i] = u[i];
     }
     
+    int tid = omp_get_thread_num();
     double dqdd_array[98];
     
-    // Chamada da função de gradiente do Plancher (Templates: T, QDD_MINV_PASSED_IN=false, MPC_MODE=false, VEL_DAMPING=true, EXTERNAL_TI=false)
-    forwardDynamicsGradient<double, false, false, true, false>(dqdd_array, &currKnot, this->d_T, this->d_I);
-    
+    // Chamada da função de gradiente do Plancher (Templates: T, QDD_MINV_PASSED_IN=false, MPC_MODE=false, VEL_DAMPING=true, EXTERNAL_TI=true)
+    // Por mais que tenha Threaded no nome, essa função não tem paralelização nela
+    forwardDynamicsGradientThreaded<double, false, false, true, true>(dqdd_array, &currKnot, &this->d_T[36 * 7 * tid], &this->d_I[36 * 7 * tid]);
+
     Jx.setZero(14, 14);
     Jx.topRightCorner<7, 7>().setIdentity();
     
