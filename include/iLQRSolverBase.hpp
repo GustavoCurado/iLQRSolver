@@ -77,4 +77,6 @@ class iLQRSolverBase
 		std::vector<Eigen::VectorXd> getXTraj() const { return xtraj; }
 		std::vector<Eigen::VectorXd> getUTraj() const { return utraj; }
 		std::vector<Eigen::MatrixXd> getKTraj() const { return K; }
+
+		void setParallelDerivatives(bool enable) { this->use_parallel_derivatives = enable; }
 };

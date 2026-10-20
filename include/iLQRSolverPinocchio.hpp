@@ -42,7 +42,7 @@ class iLQRSolverPinocchio : public iLQRSolverBase
 {
 	private:
 		pinocchio::Model model;
-		pinocchio::Data data;
+		std::vector<pinocchio::Data> datas;
 		
 		//Actuator selection matrix
 		Eigen::MatrixXd S;
