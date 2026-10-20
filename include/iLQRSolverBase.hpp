@@ -1,7 +1,5 @@
 #pragma once
 
-#define N_THREADS 4
-
 #include <stdlib.h>
 #include <iostream>
 #include <fstream>
@@ -19,6 +17,8 @@ EIGEN_DEFINE_STL_VECTOR_SPECIALIZATION(Eigen::VectorXd)
 #define time_delta_us(start, end) \
     (1e6 * static_cast<double>(end.tv_sec - start.tv_sec) + \
      1e-3 * static_cast<double>(end.tv_nsec - start.tv_nsec))
+
+#define N_THREADS 4
 
 
 class iLQRSolverBase
@@ -51,6 +51,12 @@ class iLQRSolverBase
 
 		Eigen::LDLT<Eigen::MatrixXd> ldlt;
 
+		double time_derivatives_us = 0.0;
+		double time_riccati_us = 0.0;
+		double time_rollout_us = 0.0;
+		double time_total_us = 0.0;
+		int last_iters = 0;
+
 		void initializeMemory();
 
 		virtual Eigen::VectorXd continuousDynamics(const Eigen::VectorXd& x, const Eigen::VectorXd& u) = 0; // x' = f(x, u)
@@ -75,6 +81,7 @@ class iLQRSolverBase
 		void setCosts(const Eigen::MatrixXd& Q, const Eigen::MatrixXd& R, const Eigen::MatrixXd& Qn);
 		void setBoundaryConditions(const Eigen::VectorXd& x0, const Eigen::VectorXd& xgoal);
 		void advanceMPCStep(const Eigen::VectorXd& estado_atual);
+		void resetTrajectories();
 
 		bool solve(int max_iters = 1000, double tol = 1e-3);
 
@@ -85,4 +92,10 @@ class iLQRSolverBase
 		std::vector<Eigen::MatrixXd> getKTraj() const { return K; }
 
 		void setParallelDerivatives(bool enable) { this->use_parallel_derivatives = enable; }
+
+		double getTimeDerivativesUs() const { return time_derivatives_us; }
+		double getTimeRiccatiUs() const { return time_riccati_us; }
+		double getTimeRolloutUs() const { return time_rollout_us; }
+		double getTimeTotalUs() const { return time_total_us; }
+		int getLastIters() const { return last_iters; }
 };

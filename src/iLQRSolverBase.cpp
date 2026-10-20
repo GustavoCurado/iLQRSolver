@@ -126,6 +126,9 @@ bool iLQRSolverBase::backwardPass(double& delta_J, double& max_d)
 	Eigen::MatrixXd B(Nx, Nu);
 	std::vector<Eigen::MatrixXd> Atraj(Nt-1), Btraj(Nt-1);
 
+	struct timespec t_start, t_end;
+	clock_gettime(CLOCK_MONOTONIC, &t_start);
+
 	#pragma omp parallel for num_threads(N_THREADS) if(use_parallel_derivatives)
 	for (int k = 0; k < Nt - 1; k++)
 	{
@@ -136,11 +139,15 @@ bool iLQRSolverBase::backwardPass(double& delta_J, double& max_d)
 		Btraj[k] = local_B;
 	}
 
+	clock_gettime(CLOCK_MONOTONIC, &t_end);
+	time_derivatives_us += time_delta_us(t_start, t_end);
+
+	clock_gettime(CLOCK_MONOTONIC, &t_start);
+
 	for (int k = Nt - 2; k >= 0; k--)
 	{
 		Eigen::VectorXd q = Q * (xtraj[k] - xgoal);
 		Eigen::VectorXd r = R * utraj[k];    
-
 
 		A = Atraj[k];
 		B = Btraj[k];
@@ -184,6 +191,9 @@ bool iLQRSolverBase::backwardPass(double& delta_J, double& max_d)
 		}
 	}
 
+	clock_gettime(CLOCK_MONOTONIC, &t_end);
+	time_riccati_us += time_delta_us(t_start, t_end);
+
 	return true;
 }
 
@@ -204,7 +214,16 @@ double iLQRSolverBase::forwardRollout(double alpha)
 
 bool iLQRSolverBase::solve(int max_iters, double tol)
 {
+	time_derivatives_us = 0.0;
+	time_riccati_us = 0.0;
+	time_rollout_us = 0.0;
+	time_total_us = 0.0;
+
+	struct timespec solve_start, solve_end, roll_start, roll_end;
+	clock_gettime(CLOCK_MONOTONIC, &solve_start);
+
 	//Initial rollout
+	clock_gettime(CLOCK_MONOTONIC, &roll_start);
 	xtraj[0] = x0;
 	for (int k = 0; k < Nt - 1; ++k)
 	{
@@ -212,6 +231,10 @@ bool iLQRSolverBase::solve(int max_iters, double tol)
 	}
 
 	double J = calculateTotalCost(xtraj, utraj);
+
+	clock_gettime(CLOCK_MONOTONIC, &roll_end);
+	time_rollout_us += time_delta_us(roll_start, roll_end);
+
 	double max_d = tol + 1.0; //This initialization value is here just to force entry inside loop
 
 	int iter = 0;
@@ -231,6 +254,7 @@ bool iLQRSolverBase::solve(int max_iters, double tol)
 		double J_new;
 
 		//Line search on the forward rollout
+		clock_gettime(CLOCK_MONOTONIC, &roll_start);
 		do
 		{
 			J_new = forwardRollout(alpha);
@@ -245,7 +269,14 @@ bool iLQRSolverBase::solve(int max_iters, double tol)
 		xtraj = xtraj_new;
 		utraj = utraj_new;
 		J = J_new;
+
+		clock_gettime(CLOCK_MONOTONIC, &roll_end);
+		time_rollout_us += time_delta_us(roll_start, roll_end);
 	}
+
+	clock_gettime(CLOCK_MONOTONIC, &solve_end);
+	time_total_us = time_delta_us(solve_start, solve_end);
+	last_iters = iter;
 
 	return true;
 }
@@ -262,4 +293,11 @@ void iLQRSolverBase::advanceMPCStep(const Eigen::VectorXd& estado_atual)
 	{
 		utraj[k] = utraj[k+1];
 	}
+}
+
+void iLQRSolverBase::resetTrajectories()
+{
+	xtraj.assign(Nt, Eigen::VectorXd::Zero(Nx));
+	utraj.assign(Nt - 1, Eigen::VectorXd::Zero(Nu));
+	xtraj[0] = x0;
 }
