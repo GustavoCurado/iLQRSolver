@@ -69,7 +69,7 @@ Eigen::VectorXd iLQRSolverPinocchio::continuousDynamics(const Eigen::VectorXd& x
 	return xdot;
 }
 
-void iLQRSolverPinocchio::getContinuousJacs(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::MatrixXd& Jx, Eigen::MatrixXd& Ju)
+void iLQRSolverPinocchio::getContinuousJacs(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::VectorXd& xdot, Eigen::MatrixXd& Jx, Eigen::MatrixXd& Ju)
 {
 	Eigen::VectorXd q = x.head(model.nq);
 	Eigen::VectorXd v = x.tail(model.nv);
@@ -78,6 +78,10 @@ void iLQRSolverPinocchio::getContinuousJacs(const Eigen::VectorXd& x, const Eige
 
 	//Calculates dqdd/dq and dqdd/dv and saves it in data
 	pinocchio::computeABADerivatives(model, data, q, v, tau);
+
+	xdot.resize(Nx);
+	xdot.head(model.nv) = v;
+	xdot.tail(model.nv) = data.ddq;
 
 	Jx.setZero(Nx, Nx);
 	Jx.topRightCorner(model.nq, model.nv).setIdentity(); 

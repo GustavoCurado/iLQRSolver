@@ -48,7 +48,7 @@ class iLQRSolverBase
 		void initializeMemory();
 
 		virtual Eigen::VectorXd continuousDynamics(const Eigen::VectorXd& x, const Eigen::VectorXd& u) = 0; // x' = f(x, u)
-		virtual void getContinuousJacs(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::MatrixXd& Jx, Eigen::MatrixXd& Ju) = 0;
+		virtual void getContinuousJacs(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::VectorXd& xdot, Eigen::MatrixXd& Jx, Eigen::MatrixXd& Ju) = 0;
 
 		Eigen::VectorXd discreteDynamics(const Eigen::VectorXd& x, const Eigen::VectorXd& u);   // xk+1 = f(xk, uk)
 

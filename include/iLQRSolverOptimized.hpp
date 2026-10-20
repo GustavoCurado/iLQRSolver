@@ -13,7 +13,7 @@ class iLQRSolverOptimized : public iLQRSolverBase
 
 	public:
 		Eigen::VectorXd continuousDynamics(const Eigen::VectorXd& x, const Eigen::VectorXd& u) override;
-		void getContinuousJacs(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::MatrixXd& Jx, Eigen::MatrixXd& Ju) override;
+		void getContinuousJacs(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::VectorXd& xdot, Eigen::MatrixXd& Jx, Eigen::MatrixXd& Ju) override;
 
 		iLQRSolverOptimized(double h, int Nt);
 		void setGravity(double g_z);

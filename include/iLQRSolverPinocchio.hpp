@@ -50,7 +50,7 @@ class iLQRSolverPinocchio : public iLQRSolverBase
 		void initializeMemory();
 
 		Eigen::VectorXd continuousDynamics(const Eigen::VectorXd& x, const Eigen::VectorXd& u) override; // x' = f(x, u)
-		void getContinuousJacs(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::MatrixXd& Jx, Eigen::MatrixXd& Ju) override;
+		void getContinuousJacs(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::VectorXd& xdot, Eigen::MatrixXd& Jx, Eigen::MatrixXd& Ju) override;
 
 	public:
 		iLQRSolverPinocchio(const pinocchio::Model& model, double h, int Nt);

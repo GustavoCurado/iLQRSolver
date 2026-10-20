@@ -43,17 +43,14 @@ Eigen::VectorXd iLQRSolverBase::discreteDynamics(const Eigen::VectorXd& x, const
 
 void iLQRSolverBase::computeDerivatives(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::MatrixXd& A, Eigen::MatrixXd& B)
 {
-	Eigen::VectorXd k1 = continuousDynamics(x, u);
-	Eigen::VectorXd k2 = continuousDynamics(x + 0.5 * h * k1, u);
-	Eigen::VectorXd k3 = continuousDynamics(x + 0.5 * h * k2, u);
+	Eigen::VectorXd k1(Nx), k2(Nx), k3(Nx), k4(Nx);
+	Eigen::MatrixXd Jx1(Nx, Nx), Jx2(Nx, Nx), Jx3(Nx, Nx), Jx4(Nx, Nx);
+	Eigen::MatrixXd Ju1(Nx, Nu), Ju2(Nx, Nu), Ju3(Nx, Nu), Ju4(Nx, Nu);
 
-	Eigen::MatrixXd Jx1, Jx2, Jx3, Jx4;
-	Eigen::MatrixXd Ju1, Ju2, Ju3, Ju4;
-
-	getContinuousJacs(x, u, Jx1, Ju1);
-	getContinuousJacs(x + 0.5 * h * k1, u, Jx2, Ju2);
-	getContinuousJacs(x + 0.5 * h * k2, u, Jx3, Ju3);
-	getContinuousJacs(x + h * k3, u, Jx4, Ju4);
+	getContinuousJacs(x, u, k1, Jx1, Ju1);
+	getContinuousJacs(x + 0.5 * h * k1, u, k2, Jx2, Ju2);
+	getContinuousJacs(x + 0.5 * h * k2, u, k3, Jx3, Ju3);
+	getContinuousJacs(x + h * k3, u, k4, Jx4, Ju4);
 
 	Eigen::MatrixXd I = Eigen::MatrixXd::Identity(Nx, Nx);
 

@@ -58,7 +58,7 @@ Eigen::VectorXd iLQRSolverOptimized::continuousDynamics(const Eigen::VectorXd& x
     return xdot;
 }
 
-void iLQRSolverOptimized::getContinuousJacs(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::MatrixXd& Jx, Eigen::MatrixXd& Ju)
+void iLQRSolverOptimized::getContinuousJacs(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::VectorXd& xdot, Eigen::MatrixXd& Jx, Eigen::MatrixXd& Ju)
 {
     // Inicialização de currKnot
     knot<double> currKnot = {0};
@@ -80,6 +80,11 @@ void iLQRSolverOptimized::getContinuousJacs(const Eigen::VectorXd& x, const Eige
     
     Jx.bottomLeftCorner<7, 7>() = Eigen::Map<Eigen::Matrix<double, 7, 7, Eigen::ColMajor>>(&dqdd_array[0]);
     Jx.bottomRightCorner<7, 7>() = Eigen::Map<Eigen::Matrix<double, 7, 7, Eigen::ColMajor>>(&dqdd_array[49]);
+
+    // Cálculo do xdot = [qd qdd], que é os vetores k usados na função computeDerivatives
+    xdot.resize(14);
+    xdot.head<7>() = x.tail<7>();
+    xdot.tail<7>() = Eigen::Map<Eigen::Matrix<double, 7, 1>>(currKnot.qdd);
     
     // O código do Plancher gera o M inverso como uma matriz triangular superior
     // Dá bug se o código só usasse direto o Minv dele
