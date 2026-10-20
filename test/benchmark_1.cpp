@@ -18,12 +18,6 @@
 #include <omp.h>
 
 
-// Macro from Plancher's code that converts timespec into microsseconds
-#define time_delta_us(start, end) \
-    (1e6 * static_cast<double>(end.tv_sec - start.tv_sec) + \
-     1e-3 * static_cast<double>(end.tv_nsec - start.tv_nsec))
-
-
 void printStats(const std::string& label, std::vector<double>& times)
 {
 	std::sort(times.begin(), times.end());
