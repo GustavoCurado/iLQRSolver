@@ -48,15 +48,14 @@ class iLQRSolverPinocchio : public iLQRSolverBase
 		Eigen::MatrixXd S;
 
 		void initializeMemory();
-
-		Eigen::VectorXd continuousDynamics(const Eigen::VectorXd& x, const Eigen::VectorXd& u) override; // x' = f(x, u)
-		void getContinuousJacs(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::VectorXd& xdot, Eigen::MatrixXd& Jx, Eigen::MatrixXd& Ju) override;
-
 	public:
 		iLQRSolverPinocchio(const pinocchio::Model& model, double h, int Nt);
 		iLQRSolverPinocchio(const std::string& urdf_path, double h, int Nt);
 		iLQRSolverPinocchio(const pinocchio::Model& model, const Eigen::MatrixXd& S, double h, int Nt);
 		iLQRSolverPinocchio(const std::string& urdf_path, const Eigen::MatrixXd& S, double h, int Nt);
+
+		Eigen::VectorXd continuousDynamics(const Eigen::VectorXd& x, const Eigen::VectorXd& u) override; // x' = f(x, u)
+		void getContinuousJacs(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::VectorXd& xdot, Eigen::MatrixXd& Jx, Eigen::MatrixXd& Ju) override;
 
 		void setSelectionMatrix(const Eigen::MatrixXd& S);
 		void setViscousDamping(const Eigen::VectorXd& c);

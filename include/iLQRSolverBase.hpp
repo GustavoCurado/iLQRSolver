@@ -52,9 +52,6 @@ class iLQRSolverBase
 
 		Eigen::VectorXd discreteDynamics(const Eigen::VectorXd& x, const Eigen::VectorXd& u);   // xk+1 = f(xk, uk)
 
-		//Calculates A = df/dx and B = df/du; f being discreteDynamics
-		void computeDerivatives(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::MatrixXd& A, Eigen::MatrixXd& B);
-
 		double stageCost(const Eigen::VectorXd& x, const Eigen::VectorXd& u);
 		double terminalCost(const Eigen::VectorXd& x);
 		double calculateTotalCost(const std::vector<Eigen::VectorXd>& x_traj, const std::vector<Eigen::VectorXd>& u_traj);
@@ -65,6 +62,9 @@ class iLQRSolverBase
 	public:
 		iLQRSolverBase(double h, int Nt);
 		virtual ~iLQRSolverBase() = default;
+
+		//Calculates A = df/dx and B = df/du; f being discreteDynamics
+		void computeDerivatives(const Eigen::VectorXd& x, const Eigen::VectorXd& u, Eigen::MatrixXd& A, Eigen::MatrixXd& B);
 
 		void setCosts(const Eigen::MatrixXd& Q, const Eigen::MatrixXd& R, const Eigen::MatrixXd& Qn);
 		void setBoundaryConditions(const Eigen::VectorXd& x0, const Eigen::VectorXd& xgoal);
