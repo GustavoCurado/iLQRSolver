@@ -17,8 +17,8 @@ OPT_CXXFLAGS = $(COMMON_FLAGS) $(shell pkg-config --cflags eigen3) -march=native
 OPT_LDFLAGS  = -lpthread
 
 # Targets
-PIN_BINS = $(BIN)/acrobot $(BIN)/iiwa_14 $(BIN)/iiwa_14_mpc $(BIN)/iiwa_14_printless $(BIN)/benchmark_1
-OPT_BINS = $(BIN)/opt_iiwa_14 $(BIN)/opt_iiwa_14_mpc $(BIN)/opt_iiwa_14_printless $(BIN)/opt_benchmark_1
+PIN_BINS = $(BIN)/acrobot $(BIN)/iiwa_14 $(BIN)/iiwa_14_mpc $(BIN)/iiwa_14_printless $(BIN)/benchmark_1 $(BIN)/benchmark_2
+OPT_BINS = $(BIN)/opt_iiwa_14 $(BIN)/opt_iiwa_14_mpc $(BIN)/opt_iiwa_14_printless $(BIN)/opt_benchmark_1 $(BIN)/opt_benchmark_2
 
 all: $(PIN_BINS) $(OPT_BINS)
 
@@ -63,6 +63,12 @@ $(BIN)/benchmark_1: $(TEST)/benchmark_1.cpp $(PIN_OBJS)
 	$(CXX) $(PIN_CXXFLAGS) $< $(PIN_OBJS) -o $@ $(PIN_LDFLAGS)
 
 $(BIN)/opt_benchmark_1: $(TEST)/benchmark_1.cpp $(OPT_OBJS)
+	$(CXX) $(OPT_CXXFLAGS) -DOPTIMIZED_BACKEND $< $(OPT_OBJS) -o $@ $(OPT_LDFLAGS)
+
+$(BIN)/benchmark_2: $(TEST)/benchmark_2.cpp $(PIN_OBJS)
+	$(CXX) $(PIN_CXXFLAGS) $< $(PIN_OBJS) -o $@ $(PIN_LDFLAGS)
+
+$(BIN)/opt_benchmark_2: $(TEST)/benchmark_2.cpp $(OPT_OBJS)
 	$(CXX) $(OPT_CXXFLAGS) -DOPTIMIZED_BACKEND $< $(OPT_OBJS) -o $@ $(OPT_LDFLAGS)
 
 clean:
