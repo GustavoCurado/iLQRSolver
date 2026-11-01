@@ -80,10 +80,13 @@ class iLQRSolverBase
 
 		void setCosts(const Eigen::MatrixXd& Q, const Eigen::MatrixXd& R, const Eigen::MatrixXd& Qn);
 		void setBoundaryConditions(const Eigen::VectorXd& x0, const Eigen::VectorXd& xgoal);
+		void setGoal(const Eigen::VectorXd& xgoal);
 		void advanceMPCStep(const Eigen::VectorXd& estado_atual);
 		void resetTrajectories();
 
-		bool solve(int max_iters = 1000, double tol = 1e-3);
+		Eigen::VectorXd simulatePlant(const Eigen::VectorXd& x_inicial, double dt_total, int substeps = 100);
+
+		bool solve(int max_iters = 1000, double tol = 1e-3, double time_limit_ms = 0.0);
 
 		int getNx() const { return Nx; }
 		int getNu() const { return Nu; }

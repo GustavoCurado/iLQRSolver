@@ -114,6 +114,11 @@ void iLQRSolverBase::setBoundaryConditions(const Eigen::VectorXd& x0, const Eige
 	}
 }
 
+void iLQRSolverBase::setGoal(const Eigen::VectorXd& xgoal)
+{
+	this->xgoal = xgoal;
+}
+
 bool iLQRSolverBase::backwardPass(double& delta_J, double& max_d)
 {
 	p.back() = Qn * (xtraj.back() - xgoal);
@@ -212,14 +217,14 @@ double iLQRSolverBase::forwardRollout(double alpha)
 	return calculateTotalCost(xtraj_new, utraj_new);
 }
 
-bool iLQRSolverBase::solve(int max_iters, double tol)
+bool iLQRSolverBase::solve(int max_iters, double tol, double time_limit_ms)
 {
 	time_derivatives_us = 0.0;
 	time_riccati_us = 0.0;
 	time_rollout_us = 0.0;
 	time_total_us = 0.0;
 
-	struct timespec solve_start, solve_end, roll_start, roll_end;
+	struct timespec solve_start, solve_end, roll_start, roll_end, iter_now;
 	clock_gettime(CLOCK_MONOTONIC, &solve_start);
 
 	//Initial rollout
@@ -241,6 +246,13 @@ bool iLQRSolverBase::solve(int max_iters, double tol)
 
 	while (max_d > tol && iter < max_iters)
 	{
+		if (time_limit_ms > 0.0 && iter > 0)
+		{
+			clock_gettime(CLOCK_MONOTONIC, &iter_now);
+			if (time_delta_us(solve_start, iter_now) >= time_limit_ms * 1000.0)
+				break;
+		}
+
 		iter++;
 
 		max_d = 0.0;
@@ -248,7 +260,7 @@ bool iLQRSolverBase::solve(int max_iters, double tol)
 
 		bool success = backwardPass(delta_J, max_d);
 		if (!success)
-		    return false;
+			return false;
 
 		double alpha = 1.0;
 		double J_new;
@@ -263,7 +275,7 @@ bool iLQRSolverBase::solve(int max_iters, double tol)
 				break;
 
 			alpha *= 0.5;
-		    
+
 		} while (alpha > 1e-8); //This tolerance is here to avoid underflow, which would cause an infinite loop
 
 		xtraj = xtraj_new;
@@ -300,4 +312,30 @@ void iLQRSolverBase::resetTrajectories()
 	xtraj.assign(Nt, Eigen::VectorXd::Zero(Nx));
 	utraj.assign(Nt - 1, Eigen::VectorXd::Zero(Nu));
 	xtraj[0] = x0;
+}
+
+Eigen::VectorXd iLQRSolverBase::simulatePlant(const Eigen::VectorXd& x_inicial, double dt_total, int substeps)
+{
+	double dt = dt_total / substeps;
+	Eigen::VectorXd x = x_inicial;
+
+	for (int s = 0; s < substeps; s++)
+	{
+		double t_decorrido = s * dt;
+
+		int k = static_cast<int>(t_decorrido / h);
+		if (k >= Nt - 1)
+			k = Nt - 2;
+
+		Eigen::VectorXd u = utraj[k] - K[k] * (x - xtraj[k]);
+
+		Eigen::VectorXd k1 = continuousDynamics(x, u);
+		Eigen::VectorXd k2 = continuousDynamics(x + 0.5 * dt * k1, u);
+		Eigen::VectorXd k3 = continuousDynamics(x + 0.5 * dt * k2, u);
+		Eigen::VectorXd k4 = continuousDynamics(x + dt * k3, u);
+
+		x = x + (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4);
+	}
+
+	return x;
 }
